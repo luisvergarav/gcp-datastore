@@ -2,18 +2,20 @@
 
 
 const config = require('./../config');
-const Datastore = require('@google-cloud/datastore');
+// Imports the Google Cloud client library
+const {Datastore} = require('@google-cloud/datastore');
 
-const ds = Datastore({
-  projectId: 'southern-range-262200'
-});
+// Creates a client
+const ds = new Datastore({
+    project: config.get('GCLOUD_PROJECT')
+  });
 
 const kind = 'Question';
 
 function list (limit, token, cb) {
     const q = ds.createQuery([kind])
       .limit(limit)
-      .order('title')
+      .order('idAlmacen')
       .start(token);
   
     ds.runQuery(q, (err, entities, nextQuery) => {
@@ -26,7 +28,10 @@ function list (limit, token, cb) {
     });
   }
 
-
+  function fromDatastore (obj) {
+    obj.id = obj[Datastore.KEY].id;
+    return obj;
+  }
   function update (id, data, cb) {
     let key;
     if (id) {
@@ -70,7 +75,8 @@ function list (limit, token, cb) {
     function create (data, cb) {
         update(null, data, cb);
       }
-
+    
+    
       module.exports = {
         create,
         update,
